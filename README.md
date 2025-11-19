@@ -8,7 +8,7 @@ This bot is used for utility and moderation features for the Hytale Modding Disc
 2. Install [uv](https://docs.astral.sh/uv/getting-started/installation/) package manager.
 3. Install the dependencies using the following command:
 ```
-uv install
+uv sync
 ```
 4. Copy the `.env.example` to `.env` and replace the TOKEN variable with your bot token
 5. Run the bot using the following command:

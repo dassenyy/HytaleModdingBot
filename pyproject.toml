@@ -1,7 +1,7 @@
 [project]
-name = "axolotl"
-version = "0.1.0"
-description = "Add your description here"
+name = "hytale-modding"
+version = "1.0.0"
+description = "This bot is used for utility and moderation features for the Hytale Modding Discord."
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
