@@ -20,7 +20,7 @@ class Keywords(commands.Cog):
     async def languages(self, ctx: commands.Context):
         replied_message = await self.get_replied_message(ctx)
         
-        e = discord.Embed(description="Hytale will support the following languages:\n\n- Server Side (Plugins): Java\n- Client Side (Modding): C#\n\n-# *This information is subject to change as Hytale is still in development. It is not confirmed.*")
+        e = discord.Embed(description="Hytale will support the following languages:\n\n- Server Side (Plugins): Java\n- Client Side (Modding): C#\n- UI Engine: Noesis Engine\n\n-# *This information is subject to change as Hytale is still in development. It is not confirmed.*")
         e.set_footer(text="Hytale Modding", icon_url='https://img.willofsteel.me/u/p2SdbC.png')
         await replied_message.reply(embed=e)
     
