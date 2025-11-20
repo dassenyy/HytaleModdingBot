@@ -55,5 +55,13 @@ class Keywords(commands.Cog):
         else:
             await replied_message.reply(embed=e)
 
+    @commands.command()
+    async def threadpin(self, ctx: commands.Context):
+        replied_message = await self.get_replied_message(ctx)
+
+        e = discord.Embed(description="Right click any message in a thread you own and select 'Apps' -> 'Pin Message' to pin that message to the thread. Only the thread owner can pin messages in their thread.")
+        e.set_footer(text="Hytale Modding", icon_url='https://img.willofsteel.me/u/p2SdbC.png')
+        await replied_message.reply(embed=e)
+
 async def setup(bot):
     await bot.add_cog(Keywords(bot))
