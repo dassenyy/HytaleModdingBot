@@ -44,5 +44,16 @@ class Keywords(commands.Cog):
         
         await replied_message.reply("https://github.com/HytaleModding/robot")
 
+    @commands.command()
+    async def threaded(self, ctx: commands.Context):
+        replied_message = await self.get_replied_message(ctx)
+        
+        e = discord.Embed(description="# THIS CHANNEL IS THREADED :thread:\n\nIf you wish to reply to a message, please reply in the thread and not in this channel. This helps keep the channel clean and organized. A thread for every message sent will automatically be created by me. \n\nThank you for your cooperation! :smiley:")
+        e.set_footer(text="Hytale Modding", icon_url='https://img.willofsteel.me/u/p2SdbC.png')
+        if replied_message == ctx.message:
+            await ctx.channel.send(embed=e)
+        else:
+            await replied_message.reply(embed=e)
+
 async def setup(bot):
     await bot.add_cog(Keywords(bot))
