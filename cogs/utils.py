@@ -94,21 +94,30 @@ class Utils(commands.Cog):
                 continue
 
         twitter_patterns = [
-            (r'https://(www\.)?twitter\.com/', 'https://xcancel.com/'),
-            (r'https://(www\.)?x\.com/', 'https://xcancel.com/'),
-            (r'https://vxtwitter\.com/', 'https://xcancel.com/'),
-            (r'https://fxtwitter\.com/', 'https://xcancel.com/'),
-            (r'https://nitter\.net/', 'https://xcancel.com/'),
+            r'https://(www\.)?twitter\.com/\S+',
+            r'https://(www\.)?x\.com/\S+',
+            r'https://vxtwitter\.com/\S+',
+            r'https://fxtwitter\.com/\S+',
+            r'https://nitter\.net/\S+',
         ]
         
+        twitter_links = []
         content = message.content
-        replaced_content = content
+        for pattern in twitter_patterns:
+            matches = re.findall(pattern, content)
+            for match in matches:
+                if 'twitter.com' in match or 'x.com' in match:
+                    path = re.search(r'(?:twitter|x)\.com(/\S+)', match)
+                    if path:
+                        xcancel_link = f"https://xcancel.com{path.group(1)}"
+                        twitter_links.append(xcancel_link)
+                else:
+                    xcancel_link = re.sub(r'https://[^/]+', 'https://xcancel.com', match)
+                    twitter_links.append(xcancel_link)
         
-        for pattern, replacement in twitter_patterns:
-            replaced_content = re.sub(pattern, replacement, replaced_content)
-        
-        if replaced_content != content:
-            await message.reply(f"<{replaced_content}>\n-# This is a link that makes it more convenient to share X tweets. XCancel is a service allows you to view tweets without signing in", mention_author=False)
+        if twitter_links:
+            links_text = '\n'.join([f"<{link}>" for link in twitter_links])
+            await message.reply(f"{links_text}\n-# This is a link that makes it more convenient to share X tweets. XCancel allows you to view tweets without signing in", mention_author=False)
 
 async def setup(bot):
     await bot.add_cog(Utils(bot))
