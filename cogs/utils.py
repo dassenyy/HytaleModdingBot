@@ -8,7 +8,7 @@ from better_profanity import profanity
 class Utils(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        profanity.load_censor_words(whitelist=["hytale", "hypixel", "mcc", "mcp", "mcpe", "minecraft", "fuck", "fucking", "shit", "bullshit", "bs", "idiot", "dumb"])
+        profanity.load_censor_words(whitelist_words=["hytale", "hypixel", "mcc", "mcp", "mcpe", "minecraft", "fuck", "fucking", "shit", "bullshit", "bs", "idiot", "dumb"])
 
     @app_commands.command(
         name="cooldown",
