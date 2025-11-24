@@ -21,7 +21,7 @@ class AutoMod(commands.Cog):
         if re.search(DISCORD_INVITE_URL_REGEX, message.content):
             await message.delete()
             await message.channel.send(
-                f"{message.author.mention}, posting Discord invite links is not allowed! Please DM <@702385226407608341> if you would like to post an invite to your server."
+                f"{message.author.mention}, posting Discord invite links is not allowed! Please DM <@702385226407608341> if you would like to post an invite to your server.", delete_after=30
             )
             clean_content = re.sub(DISCORD_INVITE_URL_REGEX, "[invite link removed]", message.content)
             await message.channel.send(
