@@ -46,7 +46,7 @@ class Database:
             await db.execute("""
                 CREATE INDEX IF NOT EXISTS upvotes (
                     user_id INTEGER,
-                    showcase_id INTEGER,
+                    showcase_id INTEGER
                 )
                 """)
 
