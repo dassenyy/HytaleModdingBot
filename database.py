@@ -161,3 +161,18 @@ class Database:
             )
             await db.commit()
             return cursor.rowcount > 0
+        
+    async def get_top_5_showcases(self) -> List[Dict]:
+        async with aiosqlite.connect(self.db_path) as db:
+            db.row_factory = aiosqlite.Row
+            cursor = await db.execute(
+                """
+                SELECT showcase_id, COUNT(*) as upvote_count
+                FROM upvotes
+                GROUP BY showcase_id
+                ORDER BY upvote_count DESC
+                LIMIT 5
+                """
+            )
+            rows = await cursor.fetchall()
+            return [dict(row) for row in rows]

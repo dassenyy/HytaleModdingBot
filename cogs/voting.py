@@ -1,9 +1,11 @@
 import discord
 from discord import app_commands
-from discord.ext import commands
+from discord.ext import commands, tasks
+
+import asyncio
 from database import Database
 
-class ThreadUtils(commands.Cog):
+class Voting(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.db: Database = bot.database
@@ -13,6 +15,11 @@ class ThreadUtils(commands.Cog):
             callback=self.upvote_message
         )
         self.bot.tree.add_command(self.upvote_menu)
+        self.update_votes.start()
+
+    def cog_unload(self):
+        self.update_votes.cancel()
+        return super().cog_unload()
 
     async def upvote_message(self, interaction: discord.Interaction, message: discord.Message):
         if interaction.channel_id != 1440185755745124503:
@@ -53,5 +60,57 @@ class ThreadUtils(commands.Cog):
             ephemeral=True
         )
 
+    @tasks.loop(seconds=30)
+    async def update_votes(self):
+        showcases = await self.db.get_top_5_showcases()
+        channel = self.bot.get_channel(1440185755745124503)
+        if not isinstance(channel, discord.TextChannel):
+            return
+
+        messages = await channel.history(limit=100).flatten()
+        if len(messages) < 5: 
+            for _ in range(5 - len(messages)):
+                await channel.send("Showcase placeholder message.")
+        for message in messages:
+            if message.author.bot:
+                continue
+            upvotes = await self.db.get_upvotes(message.id)
+            
+            embed = discord.Embed(
+                title="Community Showcase",
+                description=message.content if message.content else "No description provided",
+                color=discord.Color.blue(),
+                timestamp=message.created_at
+            )
+            embed.set_author(
+                name=message.author.display_name,
+                icon_url=message.author.display_avatar.url
+            )
+            embed.add_field(
+                name="Upvotes",
+                value=f"⬆️ {upvotes}",
+                inline=True
+            )
+            
+            if message.attachments:
+                attachment = message.attachments[0]
+                if attachment.content_type and attachment.content_type.startswith('image/'):
+                    embed.set_image(url=attachment.url)
+                else:
+                    embed.add_field(
+                        name="Attachment",
+                        value=f"[{attachment.filename}]({attachment.url})",
+                        inline=False
+                    )
+            
+            embed.add_field(
+                name="Original Message",
+                value=f"[Jump to Message]({message.jump_url})",
+                inline=True
+            )
+
+            await message.edit(content=message.author.mention, embed=embed)
+
+
 async def setup(bot):
-    await bot.add_cog(ThreadUtils(bot))
+    await bot.add_cog(Voting(bot))
