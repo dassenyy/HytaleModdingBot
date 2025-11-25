@@ -12,11 +12,6 @@ class ThreadUtils(commands.Cog):
             name="Upvote",
             callback=self.upvote_message
         )
-        self.get_upvotes_menu = app_commands.ContextMenu(
-            name="Get Upvotes",
-            callback=self.get_upvotes
-        )
-        self.bot.tree.add_command(self.get_upvotes_menu)
         self.bot.tree.add_command(self.upvote_menu)
 
     async def upvote_message(self, interaction: discord.Interaction, message: discord.Message):
@@ -45,8 +40,9 @@ class ThreadUtils(commands.Cog):
             return
         
         if await self.db.has_user_upvoted(interaction.user.id, message.id):
+            upvotes = await self.db.get_upvotes(message.id)
             await interaction.response.send_message(
-                "You have already upvoted this message.", ephemeral=True
+                f"You have already upvoted this message. This message has {upvotes} upvote(s).", ephemeral=True
             )
             return
         
@@ -54,13 +50,6 @@ class ThreadUtils(commands.Cog):
         total_upvotes = await self.db.get_upvotes(message.id)
         await interaction.response.send_message(
             f"You have upvoted this message! It now has {total_upvotes} upvote(s).",
-            ephemeral=True
-        )
-
-    async def get_upvotes(self, interaction: discord.Interaction, message: discord.Message):
-        total_upvotes = await self.db.get_upvotes(message.id)
-        await interaction.response.send_message(
-            f"This message has {total_upvotes} upvote(s).",
             ephemeral=True
         )
 
