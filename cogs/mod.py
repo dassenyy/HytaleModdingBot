@@ -8,7 +8,7 @@ import asyncio
 class Moderation(commands.Cog):
     def __init__(self, bot, database):
         self.bot = bot
-        self.db = database
+        self.db = bot.database
     
     async def log_to_channel(self, guild: discord.Guild, embed: discord.Embed):
         """Send log embed to configured mod log channel"""
@@ -328,8 +328,4 @@ class Moderation(commands.Cog):
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
 async def setup(bot):
-    # Import database from main
-    from database import Database
-    db = Database()
-    await db.init_db()
-    await bot.add_cog(Moderation(bot, db))
+    await bot.add_cog(Moderation(bot))

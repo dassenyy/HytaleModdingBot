@@ -43,6 +43,13 @@ class Database:
                 )
             """)
             
+            await db.execute("""
+                CREATE INDEX IF NOT EXISTS upvotes (
+                    user_id INTEGER,
+                    showcase_id INTEGER,
+                )
+                """)
+
             await db.commit()
     
     # Warning methods
@@ -119,3 +126,38 @@ class Database:
             )
             row = await cursor.fetchone()
             return row[0] if row else None
+        
+    async def log_upvote(self, user_id: int, showcase_id: int):
+        async with aiosqlite.connect(self.db_path) as db:
+            await db.execute(
+                "INSERT INTO upvotes (user_id, showcase_id) VALUES (?, ?)",
+                (user_id, showcase_id)
+            )
+            await db.commit()
+
+    async def get_upvotes(self, showcase_id: int) -> int:
+        async with aiosqlite.connect(self.db_path) as db:
+            cursor = await db.execute(
+                "SELECT COUNT(*) FROM upvotes WHERE showcase_id = ?",
+                (showcase_id,)
+            )
+            row = await cursor.fetchone()
+            return row[0] if row else 0
+        
+    async def has_user_upvoted(self, user_id: int, showcase_id: int) -> bool:
+        async with aiosqlite.connect(self.db_path) as db:
+            cursor = await db.execute(
+                "SELECT 1 FROM upvotes WHERE user_id = ? AND showcase_id = ?",
+                (user_id, showcase_id)
+            )
+            row = await cursor.fetchone()
+            return row is not None
+    
+    async def remove_upvote(self, user_id: int, showcase_id: int) -> bool:
+        async with aiosqlite.connect(self.db_path) as db:
+            cursor = await db.execute(
+                "DELETE FROM upvotes WHERE user_id = ? AND showcase_id = ?",
+                (user_id, showcase_id)
+            )
+            await db.commit()
+            return cursor.rowcount > 0

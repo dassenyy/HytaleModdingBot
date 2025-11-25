@@ -3,7 +3,7 @@ from discord.ext import commands
 
 import os
 from dotenv import load_dotenv
-
+from database import Database
 load_dotenv()
 
 intents = discord.Intents.all()
@@ -16,6 +16,11 @@ async def load_cogs():
         if filename.endswith(".py"):
             await bot.load_extension(f"cogs.{filename[:-3]}")
             print(f"Loaded cog: {filename}")
+
+@bot.event
+async def on_load():
+    bot.database = Database()
+    await bot.database.init_db()
 
 @bot.event
 async def on_ready():
