@@ -41,6 +41,10 @@ TAGS = {
         "title": None,
         "description": "- Hytale will use the QUIC transport protocol.\n- QUIC is a hybrid protocol that builds off UDP to get the same speed benefits, but adds some layers of reliability like TCP.",
         "url": None
+    },
+    "featured-guide": {
+        "title": "Featured Community Projects",
+        "description": "Congratulations! Your project is being featured on our website, here are the steps to add your projects:\n\n- Fork the [site repository](https://github.com/HytaleModding/site)\n- On the `dev` branch, open the `content/docs/projects` folder\n- Create a new markdown file for your project, following the existing format\n- Submit a pull request to the `dev` branch\n\nOnce your pull request is reviewed and merged, your project will be featured on the website!\n\nThank you for contributing to the Hytale Modding community!",
     }
 }
 
