@@ -6,7 +6,7 @@ from typing import Optional
 import asyncio
 
 class Moderation(commands.Cog):
-    def __init__(self, bot, database):
+    def __init__(self, bot):
         self.bot = bot
         self.db = bot.database
     
