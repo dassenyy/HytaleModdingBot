@@ -131,6 +131,59 @@ class ConfirmCloseView(discord.ui.View):
                     log_embed.add_field(name="Messages", value=str(len(await channel.history(limit=None).flatten())), inline=True)
                     
                     await logs_channel.send(embed=log_embed, view=TranscriptView(transcript_url))
+                
+                staff_channel = interaction.guild.get_channel(1440173445739446366)
+                if staff_channel:
+                    message_count = len(await channel.history(limit=None).flatten())
+                    
+                    ticket_created = channel.created_at
+                    ticket_duration = discord.utils.utcnow() - ticket_created
+                    
+                    staff_embed = discord.Embed(
+                        title="🎫 Ticket Closed - Staff Notification",
+                        description=f"**Ticket:** `{channel.name}`\n**Status:** Closed",
+                        color=discord.Color.red(),
+                        timestamp=discord.utils.utcnow()
+                    )
+                    
+                    if ticket_owner:
+                        staff_embed.add_field(
+                            name="👤 Ticket Owner",
+                            value=f"{ticket_owner.mention}\n**ID:** `{ticket_owner.id}`\n**Account Created:** {discord.utils.format_dt(ticket_owner.created_at, 'R')}",
+                            inline=True
+                        )
+                    else:
+                        staff_embed.add_field(
+                            name="👤 Ticket Owner",
+                            value=f"Unknown User\n**ID:** `{ticket_owner_id}`",
+                            inline=True
+                        )
+                    
+                    staff_embed.add_field(
+                        name="🔒 Closed By",
+                        value=f"{interaction.user.mention}\n**Role:** {interaction.user.top_role.mention}\n**Time:** {discord.utils.format_dt(discord.utils.utcnow())}",
+                        inline=True
+                    )
+                    
+                    staff_embed.add_field(
+                        name="📊 Ticket Stats",
+                        value=f"**Messages:** {message_count}\n**Duration:** {str(ticket_duration).split('.')[0]}\n**Created:** {discord.utils.format_dt(ticket_created, 'R')}",
+                        inline=True
+                    )
+                    
+                    total_tickets = len([c for c in interaction.guild.channels if c.name.startswith("ticket-")])
+                    staff_embed.add_field(
+                        name="🏢 Server Stats",
+                        value=f"**Open Tickets:** {total_tickets}\n**Total Members:** {interaction.guild.member_count}",
+                        inline=True
+                    )
+                    
+                    staff_embed.set_footer(text=f"Ticket ID: {ticket_owner_id}")
+                    
+                    if ticket_owner and ticket_owner.avatar:
+                        staff_embed.set_thumbnail(url=ticket_owner.avatar.url)
+                    
+                    await staff_channel.send(embed=staff_embed, view=TranscriptView(transcript_url))
             
         except Exception as e:
             print(f"Error generating transcript: {e}")
