@@ -1,9 +1,7 @@
 import discord
 from discord import app_commands
-from discord.ext import commands, tasks
+from discord.ext import commands
 from datetime import datetime, timedelta
-from typing import Optional
-import asyncio
 
 class Moderation(commands.Cog):
     def __init__(self, bot):
@@ -327,6 +325,23 @@ class Moderation(commands.Cog):
             embed.set_footer(text=f"Showing 10 of {len(history)} actions")
         
         await interaction.response.send_message(embed=embed, ephemeral=True)
+
+    @app_commands.command()
+    async def deletepost(self, interaction: discord.Interaction, reason: str):
+        """Delete a thread"""
+    
+        if not isinstance(interaction.channel, discord.Thread):
+            return await interaction.response.send_message("❌ This command can only be used in a thread.", ephemeral=True)
+        
+        if not interaction.user.guild_permissions.manage_threads:
+            return await interaction.response.send_message("❌ You do not have permission to delete threads.", ephemeral=True)
+        channel: discord.Thread = interaction.channel  # type: ignore
+        owner = channel.owner
+        e = discord.Embed(title="Your thread has been deleted", description="Our staff have flagged the contents of your thread to be in violation of our server rules.", color=discord.Color.red())
+        await owner.send(embed=e)
+        await channel.delete(reason=f"Thread deleted by {interaction.user} | Reason: {reason}")
+        e = discord.Embed(title="Thread Deleted", description=f"Thread '{channel.name}' has been deleted by {interaction.user.mention}. Reason: {reason}", color=discord.Color.orange())
+        await self.log_to_channel(interaction.guild, e)
 
     @warn.autocomplete("rule")
     async def rule_autocomplete(self, interaction: discord.Interaction, current: str) -> list[app_commands.Choice[str]]:
