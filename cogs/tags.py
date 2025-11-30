@@ -51,6 +51,10 @@ TAGS = {
         "title": "Following Threads",
         "description": "To follow a thread and receive notifications for new updates, run the `/follow` command. You can unfollow a thread at any time using the `/unfollow` command.",
         "url": None
+    },
+    "guide": {
+        "title": "",
+        "description": "Check out the unofficial community guide prepared by <@195715421041590272>!\n\n### [Click here or the link above to visit](https://docs.google.com/document/d/10BTtTlM0KlK18l-hLkU6-eRiWUTFljcvnaqF593cX8E/edit?tab=t.0)",
     }
 }
 
