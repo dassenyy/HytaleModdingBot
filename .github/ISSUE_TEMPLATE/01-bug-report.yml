@@ -11,8 +11,7 @@ body:
       description: 'Please search the issues to check if this bug has already been reported.'
       options:
       - label: I have searched the existing issues
-    validations:
-      required: true
+        required: true
 
   - type: textarea
     id: current-behavior
@@ -43,5 +42,4 @@ body:
       description: Check this box if you would like to be assigned to work on this issue.
       options:
         - label: I would like to be assigned to this issue
-    validations:
-      required: false
+          required: false
