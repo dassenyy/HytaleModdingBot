@@ -11,7 +11,7 @@ log = logging.getLogger(__name__)
 class StatisticsCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.db = Database()
+        self.db = bot.database
         self.collect_stats.start()
     
     def cog_unload(self):
@@ -31,7 +31,6 @@ class StatisticsCog(commands.Cog):
     async def before_collect_stats(self):
         """Wait for bot to be ready before starting stats collection"""
         await self.bot.wait_until_ready()
-        await self.db.init_db()
     
     async def _collect_guild_stats(self, guild):
         """Collect statistics for a single guild"""
