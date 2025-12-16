@@ -6,6 +6,8 @@ from .migration import MigrationManager
 from .migrations import discover_migrations
 
 log = logging.getLogger(__name__)
+aiomysql_logger = logging.getLogger('aiomysql')
+aiomysql_logger.setLevel(logging.ERROR)
 
 class Database:
     def __init__(self, host: str = "localhost", port: int = 3306,
