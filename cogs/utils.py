@@ -275,6 +275,15 @@ class Utils(commands.Cog):
     async def on_message(self, message: discord.Message):
         if message.author.bot:
             return
+        
+        if message.channel.id == 1440984193181028394:
+            if len(message.embeds) < 1:
+                return
+            
+            embed = message.embeds[0]
+            if embed.author == "github-actions[bot]" and "crowdin-translations was forced-pushed" in embed.title:
+                await message.delete()
+                return
 
         discord_link_pattern = r'https://discord\.com/channels/(\d+)/(\d+)/(\d+)'
         matches = re.findall(discord_link_pattern, message.content)
