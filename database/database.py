@@ -2,6 +2,8 @@ import aiomysql
 from datetime import datetime, timedelta
 from typing import Optional, List, Dict
 import logging
+from .migration import MigrationManager
+from .migrations import discover_migrations
 
 log = logging.getLogger(__name__)
 
@@ -13,6 +15,16 @@ class Database:
         self.user = user
         self.password = password
         self.database = database
+        
+        self.migration_manager = MigrationManager(self)
+        self._register_migrations()
+    
+    def _register_migrations(self):
+        """Register all available migrations"""
+        migrations = discover_migrations()
+        
+        for migration in migrations:
+            self.migration_manager.register_migration(migration)
     
     async def get_connection(self):
         return await aiomysql.connect(
@@ -25,120 +37,8 @@ class Database:
         )
     
     async def init_db(self):
-        conn = await self.get_connection()
-        try:
-            async with conn.cursor() as cursor:
-                # Warnings table
-                await cursor.execute("""
-                    CREATE TABLE IF NOT EXISTS warnings (
-                        id INT AUTO_INCREMENT PRIMARY KEY,
-                        guild_id BIGINT NOT NULL,
-                        user_id BIGINT NOT NULL,
-                        moderator_id BIGINT NOT NULL,
-                        reason TEXT,
-                        timestamp DATETIME NOT NULL,
-                        INDEX idx_guild_user (guild_id, user_id),
-                        INDEX idx_timestamp (timestamp)
-                    ) ENGINE=InnoDB
-                """)
-                
-                # Mod actions log table
-                await cursor.execute("""
-                    CREATE TABLE IF NOT EXISTS mod_actions (
-                        id INT AUTO_INCREMENT PRIMARY KEY,
-                        guild_id BIGINT NOT NULL,
-                        action_type VARCHAR(50) NOT NULL,
-                        user_id BIGINT NOT NULL,
-                        moderator_id BIGINT NOT NULL,
-                        reason TEXT,
-                        duration INT,
-                        timestamp DATETIME NOT NULL,
-                        INDEX idx_guild_user (guild_id, user_id),
-                        INDEX idx_timestamp (timestamp)
-                    ) ENGINE=InnoDB
-                """)
-                
-                # Mod log channel settings
-                await cursor.execute("""
-                    CREATE TABLE IF NOT EXISTS mod_config (
-                        guild_id BIGINT PRIMARY KEY,
-                        log_channel_id BIGINT
-                    ) ENGINE=InnoDB
-                """)
-                
-                await cursor.execute("""
-                    CREATE TABLE IF NOT EXISTS upvotes (
-                        showcase_id BIGINT NOT NULL PRIMARY KEY,
-                        count INT NOT NULL DEFAULT 0
-                    ) ENGINE=InnoDB
-                """)
-
-                await cursor.execute("""
-                    CREATE TABLE IF NOT EXISTS thread_followers (
-                        thread_id BIGINT NOT NULL,
-                        user_id BIGINT NOT NULL,
-                        PRIMARY KEY (thread_id, user_id)
-                    ) ENGINE=InnoDB
-                """)
-
-                await cursor.execute("""
-                    CREATE TABLE IF NOT EXISTS tickets (
-                        id INT AUTO_INCREMENT PRIMARY KEY,
-                        guild_id BIGINT NOT NULL,
-                        channel_id BIGINT NOT NULL,
-                        user_id BIGINT NOT NULL,
-                        username VARCHAR(255) NOT NULL,
-                        created_at DATETIME NOT NULL,
-                        closed_at DATETIME NULL,
-                        closed_by BIGINT NULL,
-                        status VARCHAR(20) DEFAULT 'open',
-                        transcript_url TEXT,
-                        INDEX idx_guild (guild_id),
-                        INDEX idx_status (status),
-                        INDEX idx_user (user_id)
-                    ) ENGINE=InnoDB
-                """)
-                
-                await cursor.execute("""
-                    CREATE TABLE IF NOT EXISTS ticket_participants (
-                        ticket_id INT NOT NULL,
-                        user_id BIGINT NOT NULL,
-                        added_by BIGINT NOT NULL,
-                        added_at DATETIME NOT NULL,
-                        PRIMARY KEY (ticket_id, user_id),
-                        FOREIGN KEY (ticket_id) REFERENCES tickets(id) ON DELETE CASCADE
-                    ) ENGINE=InnoDB
-                """)
-
-                # Server statistics tables for Grafana
-                await cursor.execute("""
-                    CREATE TABLE IF NOT EXISTS server_stats (
-                        id INT AUTO_INCREMENT PRIMARY KEY,
-                        guild_id BIGINT NOT NULL,
-                        timestamp DATETIME NOT NULL,
-                        total_members INT NOT NULL,
-                        online_members INT NOT NULL,
-                        idle_members INT NOT NULL,
-                        dnd_members INT NOT NULL,
-                        offline_members INT NOT NULL,
-                        INDEX idx_guild_time (guild_id, timestamp)
-                    ) ENGINE=InnoDB
-                """)
-
-                await cursor.execute("""
-                    CREATE TABLE IF NOT EXISTS user_activity (
-                        guild_id BIGINT NOT NULL,
-                        user_id BIGINT NOT NULL,
-                        last_message DATETIME NOT NULL,
-                        PRIMARY KEY (guild_id, user_id),
-                        INDEX idx_last_message (last_message)
-                    ) ENGINE=InnoDB
-                """)
-
-        finally:
-            conn.close()
-
-        await self.run_migrations()
+        """Initialize database by running all migrations"""
+        await self.migration_manager.run_migrations()
 
     async def run_migrations(self):
         migrations = (
