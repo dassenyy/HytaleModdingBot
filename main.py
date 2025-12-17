@@ -25,6 +25,11 @@ async def load_cogs():
             log.info(f"Loaded cog: {filename}")
 
 @bot.event
+async def on_connect():
+    await load_cogs()
+    log.info("All cogs loaded.")
+
+@bot.event
 async def on_ready():
     host = os.getenv("DB_HOST", "localhost")
     port = int(os.getenv("DB_PORT", 3306))
@@ -40,7 +45,6 @@ async def on_ready():
         await bot.close()
         return
 
-    await load_cogs()
     log.info(f"{bot.user} is ready!")
 
     await bot.tree.sync()
