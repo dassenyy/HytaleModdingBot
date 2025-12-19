@@ -281,7 +281,7 @@ class Utils(commands.Cog):
                 return
             
             embed = message.embeds[0]
-            if embed.author == "github-actions[bot]" and "crowdin-translations was forced-pushed" in embed.title:
+            if embed.author == "github-actions[bot]" and "crowdin-translations was force-pushed" in embed.title:
                 await message.delete()
                 return
 
