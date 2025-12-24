@@ -1,7 +1,7 @@
 import logging
 from dataclasses import dataclass
 
-from config.env_var_loader import EnvVarLoader
+from settings.env_var_loader import EnvVarLoader
 
 log = logging.getLogger(__name__)
 
