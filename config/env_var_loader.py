@@ -8,7 +8,7 @@ log = logging.getLogger(__name__)
 
 EVT = TypeVar("EVT", str, int, bool)
 
-class MissingRequiredEnvVarException(Exception):
+class EnvVarLoaderException(Exception):
     pass
 
 class EnvVarLoader:
@@ -33,16 +33,15 @@ class EnvVarLoader:
             default_value (EVT | None): The value to use if the environment variable is not set. Defaults to None.
 
         Returns:
-            EVT | None: The value of the environment variable with the provided target type if set
-            or the default value if provided, otherwise None.
+            EVT | None: The value of the environment variable with the provided target type if set or the default value if provided, otherwise None.
         """
-        env_variable: EVT | None = cls._resolve(key, target_type, True, default_value)
+        env_var: EVT | None = cls._resolve(key, target_type, default_value)
 
-        if env_variable is None:
-            log.warning(f"Optional environment variable \"{key}\" is not set, some features might not work")
+        if env_var is None:
+            log.warning(f"Environment variable \"{key}\" is not set. Some features might not work")
             return None
 
-        return env_variable
+        return env_var
 
     @classmethod
     def get_required(cls, key: str, target_type: Type[EVT], *,
@@ -58,63 +57,74 @@ class EnvVarLoader:
             EVT: The value of the environment variable with the provided target type.
 
         Raises:
-            MissingRequiredEnvVarException: If the required environment variable is not set.
+            EnvVarLoaderException: If the required environment variable is not set.
         """
-        env_variable: EVT | None = cls._resolve(key, target_type, True, default_value)
+        env_var: EVT | None = cls._resolve(key, target_type, default_value)
 
-        if env_variable is None:
-            raise MissingRequiredEnvVarException(f"Required environment variable \"{key}\" is not set")
+        if env_var is None:
+            raise EnvVarLoaderException(f"Environment variable \"{key}\" is not set. It is required to run the bot")
 
-        return env_variable
+        return env_var
 
     @classmethod
-    def _resolve(cls, key: str, target_type: Type[EVT], required: bool,
+    def _resolve(cls, key: str, target_type: Type[EVT],
                  default_value: EVT | None) -> EVT | None:
         """Resolve an environment variable into a typed value.
 
         Lazy load dotenv, read the environment variable, and convert it to `target_type` if it is set,
         otherwise fall back to `default_value` or None.
 
-        This function does not enforce whether an environment variable is required or not,
-        `required` is only used for logging.
-
         Args:
             key (str): The name of the environment variable.
             target_type (Type[EVT]): The type the value will be converted to.
-            required (bool): Whether the variable is considered required.
-                Used only for logging purposes.
             default_value (EVT | None): The value to use if the environment variable is not set.
 
         Returns:
-            EVT | None: The value of the environment variable with the provided target type if set
-            or the default value if provided, otherwise None.
+            EVT | None: The value of the environment variable with the provided target type if set or the default value if provided, otherwise None.
+
+        Raises:
+            EnvVarLoaderException: If the required environment variable is not set.
         """
         cls._ensure_dotenv_loaded()
 
-        loaded_env_value: str | None = os.getenv(key)
+        loaded_env_var_value: str | None = os.getenv(key)
 
-        # Empty string is not a valid value for `loaded_env_value`
-        if loaded_env_value:
-            return cls._convert_env_value(loaded_env_value, target_type)
+        # Empty string for `loaded_env_var_value` is treated as a missing env var
+        if loaded_env_var_value:
+            try:
+                return cls._convert_env_var_value(loaded_env_var_value, target_type)
+            except ValueError as e:
+                raise EnvVarLoaderException(
+                    f"Environment variable \"{key}\" is expected to be of type \"{target_type}\""                     
+                    f", but the provided value could not be converted: {e}"
+                )
 
         # Empty string is a valid value for `default_value`
         if default_value is not None:
-            log.warning(f"{"Required" if required else "Optional"} environment variable \"{key}\" is not set"
-                        f", using default value \"{default_value}\" instead")
-            return target_type(default_value)
+            log.warning(
+                f"Environment variable \"{key}\" is not set"
+                f", using default value \"{default_value}\" instead"
+            )
+            try:
+                return target_type(default_value)
+            except ValueError as e:
+                raise ValueError(f"Type of default value does not match provided target type: {e}")
         else:
             return None
 
     @staticmethod
-    def _convert_env_value(value: str, target_type: Type[EVT]) -> EVT:
+    def _convert_env_var_value(value: str, target_type: Type[EVT]) -> EVT:
         if target_type is str:
             return str(value)
+
         elif target_type is int:
             return int(value)
+
         elif target_type is bool:
             return EnvVarLoader._str_to_bool(value)
+
         else:
-            raise TypeError(f"Unsupported type \"{target_type}\" for typecasting env value \"{value}\"")
+            raise TypeError(f"Unsupported type \"{target_type}\" for converting env value string \"{value}\"")
 
     @staticmethod
     def _str_to_bool(value: str) -> bool:
@@ -123,4 +133,4 @@ class EnvVarLoader:
         elif value.lower() in ("false", "no", "0", "off"):
             return False
         else:
-            raise ValueError(f"Invalid literal for string to bool conversion: \"{value}\"")
+            raise ValueError(f"Invalid literal for converting string to bool: \"{value}\"")
