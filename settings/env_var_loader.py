@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import TypeVar, Type
+from typing import TypeVar, cast
 
 from dotenv import load_dotenv
 
@@ -34,13 +34,24 @@ class EnvVarLoader:
         cls._dotenv_loaded = True
 
     @classmethod
-    def get_optional(cls, key: str, target_type: Type[EVT], *,
-                     default_value: EVT | None = None) -> EVT | None:
+    def get_optional_str(cls, key: str, *, default_value: str | None = None) -> str | None:
+        """Get an optional environment variable as a str."""
+        return cls._get_optional(key, str, default_value)
+    @classmethod
+    def get_optional_int(cls, key: str, *, default_value: int | None = None) -> int | None:
+        """Get an optional environment variable as an int."""
+        return cls._get_optional(key, int, default_value)
+    @classmethod
+    def get_optional_bool(cls, key: str, *, default_value: bool | None = None) -> bool | None:
+        """Get an optional environment variable as a bool."""
+        return cls._get_optional(key, bool, default_value)
+    @classmethod
+    def _get_optional(cls, key: str, target_type: type[EVT], default_value: EVT | None) -> EVT | None:
         """Get a typed environment variable or None.
 
         Args:
             key (str): The name of the environment variable.
-            target_type (Type[EVT]): The type the value will be converted to.
+            target_type (type[EVT]): The type the value will be converted to.
             default_value (EVT | None): The value to use if the environment variable is not set. Defaults to None.
 
         Returns:
@@ -55,13 +66,25 @@ class EnvVarLoader:
         return env_var
 
     @classmethod
-    def get_required(cls, key: str, target_type: Type[EVT], *,
-                     default_value: EVT | None = None) -> EVT:
+    def get_required_str(cls, key: str, *, default_value: str | None = None) -> str:
+        """Get a required environment variable as a str."""
+        return cls._get_required(key, str, default_value)
+    @classmethod
+    def get_required_int(cls, key: str, *, default_value: int | None = None) -> int:
+        """Get a required environment variable as an int."""
+        return cls._get_required(key, int, default_value)
+    @classmethod
+    def get_required_bool(cls, key: str, *, default_value: bool | None = None) -> bool:
+        """Get a required environment variable as a bool."""
+        # We know the returned value is a bool, but type-checker doesn't since bool is a subtype of int
+        return cast(bool, cls._get_required(key, bool, default_value))
+    @classmethod
+    def _get_required(cls, key: str, target_type: type[EVT], default_value: EVT | None) -> EVT:
         """Get a typed environment variable.
 
         Args:
             key (str): The name of the environment variable.
-            target_type (Type[EVT]): The type the value will be converted to.
+            target_type (type[EVT]): The type the value will be converted to.
             default_value (EVT | None): The value to use if the environment variable is not set. Defaults to None.
 
         Returns:
@@ -78,8 +101,7 @@ class EnvVarLoader:
         return env_var
 
     @classmethod
-    def _resolve(cls, key: str, target_type: Type[EVT],
-                 default_value: EVT | None) -> EVT | None:
+    def _resolve(cls, key: str, target_type: type[EVT], default_value: EVT | None) -> EVT | None:
         """Resolve an environment variable into a typed value.
 
         Lazy load dotenv, read the environment variable, and convert it to `target_type` if it is set,
@@ -87,7 +109,7 @@ class EnvVarLoader:
 
         Args:
             key (str): The name of the environment variable.
-            target_type (Type[EVT]): The type the value will be converted to.
+            target_type (type[EVT]): The type the value will be converted to.
             default_value (EVT | None): The value to use if the environment variable is not set.
 
         Returns:
@@ -124,7 +146,7 @@ class EnvVarLoader:
             return None
 
     @staticmethod
-    def _convert_env_var_value(value: str, target_type: Type[EVT]) -> EVT:
+    def _convert_env_var_value(value: str, target_type: type[EVT]) -> EVT:
         if target_type is str:
             return str(value)
 

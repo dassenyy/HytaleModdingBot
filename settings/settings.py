@@ -8,8 +8,7 @@ log = logging.getLogger(__name__)
 @dataclass(frozen=True)
 class BotSettings:
     TOKEN: str
-    """str: Discord bot token
-    """
+    """str: Discord bot token"""
 
     DB_HOST: str
     DB_PORT: int
@@ -18,8 +17,7 @@ class BotSettings:
     DB_NAME: str | None
 
     UPLOAD_TOKEN: str | None
-    """str | None: Token for uploading ticket transcripts
-    """
+    """str | None: Token for uploading ticket transcripts"""
 
 class Settings:
     _settings_instance: BotSettings | None = None
@@ -34,15 +32,15 @@ class Settings:
             return
 
         cls._settings_instance = BotSettings(
-            TOKEN=EnvVarLoader.get_required("TOKEN", str),
+            TOKEN=EnvVarLoader.get_required_str("TOKEN"),
 
-            DB_HOST=EnvVarLoader.get_required("DB_HOST", str, default_value="localhost"),
-            DB_PORT=EnvVarLoader.get_required("DB_PORT", int, default_value=3306),
-            DB_USER=EnvVarLoader.get_optional("DB_USER", str, default_value="root"),
-            DB_PASSWORD=EnvVarLoader.get_required("DB_PASSWORD", str, default_value=""),
-            DB_NAME=EnvVarLoader.get_optional("DB_NAME", str, default_value="moderation"),
+            DB_HOST=EnvVarLoader.get_required_str("DB_HOST", default_value="localhost"),
+            DB_PORT=EnvVarLoader.get_required_int("DB_PORT", default_value=3306),
+            DB_USER=EnvVarLoader.get_optional_str("DB_USER", default_value="root"),
+            DB_PASSWORD=EnvVarLoader.get_optional_str("DB_PASSWORD", default_value=""),
+            DB_NAME=EnvVarLoader.get_optional_str("DB_NAME", default_value="moderation"),
 
-            UPLOAD_TOKEN=EnvVarLoader.get_optional("UPLOAD_TOKEN", str)
+            UPLOAD_TOKEN=EnvVarLoader.get_optional_str("UPLOAD_TOKEN")
         )
 
         log.info(f"Loaded settings")
